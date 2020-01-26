@@ -19,8 +19,8 @@ int main()
         }
     }
     srand(228);
-    for (size_t i = 0; i < WIDTH * 98 /100; i++){
-        for (size_t j = 0; j < HEIGHT *98 / 100 ; j++){
+    for (size_t i = 0; i < WIDTH - 1; i++){
+        for (size_t j = 0; j < HEIGHT -1  ; j++){
             u[i][j] = (double) rand()/RAND_MAX;
         }
     }
@@ -50,9 +50,9 @@ int main()
     while (window.isOpen()){
         for (size_t i = 1; i < WIDTH - 1; i++){
             for (size_t j = 1; j < HEIGHT - 1; j++){
-                double ddx = (u[i + 1][j] - 2 * u[i][j] + u[i - 1][j]);
-                double ddy = (u[i][j + 1] - 2 * u[i][j] + u[i][j - 1]);
-                double dt = 0.4* (ddx + ddy);
+                double ddx = (u[i + 1][j] - 2 * u[i][j] + u[i - 1][j])/ 4;
+                double ddy = (u[i][j + 1] - 2 * u[i][j] + u[i][j - 1])/ 4;
+                double dt = 0.1* (ddx + ddy);
                 ubuf[i][j] = u[i][j] +  dt;
                 pixels[4 *(WIDTH *j + i)] = (uint8_t)(ubuf[i][j] * 255);
              }
