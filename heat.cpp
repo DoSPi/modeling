@@ -1,24 +1,20 @@
 #include <SFML/Graphics.hpp>
 #include <random>
 #include <iostream>
+#include <vector>
+using namespace std;
 int main()
 {
     constexpr size_t WIDTH = 800;
     constexpr size_t HEIGHT = 600;
     sf::RenderWindow window(sf::VideoMode(WIDTH,HEIGHT), "Thermal conductivity");
-    double **ux = new double*[WIDTH];
-    double **uy = new double*[WIDTH];
-    double **uxbuf = new double*[WIDTH];
-    double **uybuf = new double*[WIDTH]; 
-    for(size_t i = 0; i < WIDTH; i++){
-        ux[i] = new double[HEIGHT];
-        uxbuf[i] = new double[HEIGHT];
-        uy[i] = new double[HEIGHT];
-        uybuf[i] = new double[HEIGHT];
-    }
+    vector<vector<double>> ux(WIDTH, vector<double>(HEIGHT));
+    vector<vector<double>> uy(WIDTH, vector<double>(HEIGHT));
+    vector<vector<double>> uxtemp(WIDTH, vector<double>(HEIGHT));
+    vector<vector<double>> uytemp(WIDTH, vector<double>(HEIGHT));
     srand(228);
-    for (size_t i = 0; i < WIDTH; i++){
-        for (size_t j = 0; j < HEIGHT; j++){
+    for (size_t i = 0; i < ux.size(); i++){
+        for (size_t j = 0; j < ux[0].size(); j++){
             ux[i][j] = (double) rand()/RAND_MAX  * 0.5;
             uy[i][j] = (double) rand()/RAND_MAX * 0.5 ;
         }
@@ -29,7 +25,6 @@ int main()
             pixels[4 *(WIDTH *j + i) + 3] = 255;
         }
     }
-
     sf::Texture texture;
     texture.create(WIDTH, HEIGHT);
     sf::Sprite sprite(texture);
@@ -38,33 +33,49 @@ int main()
             for (size_t j = 1; j < HEIGHT - 1; j++){
                 double ddx = (ux[i + 1][j] - 2 * ux[i][j] + ux[i - 1][j])/ 4;
                 double ddy = (ux[i][j + 1] - 2 * ux[i][j] + ux[i][j - 1])/ 4;
-                double dt = 0.1* (ddx + ddy);
-                uxbuf[i][j] = ux[i][j] +  dt;
+                double dt = 10 *(ddx + ddy);
+                uxtemp[i][j] = ux[i][j] +  dt;
                 ddx = (uy[i + 1][j] - 2 * uy[i][j] + uy[i - 1][j])/ 4;
                 ddy = (uy[i][j + 1] - 2 * uy[i][j] + uy[i][j - 1])/ 4;
-                dt = 0.1* (ddx + ddy);
-                uybuf[i][j] = uy[i][j] +  dt;
-                pixels[4 *(WIDTH *j + i)] = (uint8_t)((uxbuf[i][j] + uybuf[i][j]) * 255);
+                dt = 10 * (ddx + ddy);
+                uytemp[i][j] = uy[i][j] +  dt;
              }
         }
         for (size_t i = 0; i < WIDTH; i++){
-            uxbuf[i][0] = uxbuf[i][1];
-            uxbuf[i][HEIGHT - 1] =uxbuf[i][HEIGHT -2];
-            uybuf[i][0] = uybuf[i][1];
-            uybuf[i][HEIGHT - 1] =uybuf[i][HEIGHT -2];
+            uxtemp[i][0] = uxtemp[i][1];
+            uxtemp[i][HEIGHT - 1] =uxtemp[i][HEIGHT -2];
+            uytemp[i][0] = uytemp[i][1];
+            uytemp[i][HEIGHT - 1] =uytemp[i][HEIGHT -2];
         }
         for (size_t j = 0; j < HEIGHT; j++){
-        uxbuf[0][j] =uxbuf[1][j];
-        uxbuf[WIDTH - 1][j] = uxbuf[WIDTH -2][j];
-        uybuf[0][j] =uybuf[1][j];
-        uybuf[WIDTH - 1][j] = uybuf[WIDTH -2][j];
-    }
-        for (size_t i = 0; i < WIDTH ; i++){
-            for (size_t j = 0; j < HEIGHT ; j++){
-                ux[i][j] = uxbuf[i][j];
-                uy[i][j] = uybuf[i][j];
-            }   
+            uxtemp[0][j] =uxtemp[1][j];
+            uxtemp[WIDTH - 1][j] = uxtemp[WIDTH -2][j];
+            uytemp[0][j] =uytemp[1][j];
+            uytemp[WIDTH - 1][j] = uytemp[WIDTH -2][j];
         }
+        ux = uxtemp;
+        uy = uytemp;
+        for (size_t i = 100; i < 300; i++){
+            for (size_t j = 100; j < 300; j++){
+                    ux[i][j] = 0;
+                    uy[i][j] = 0;
+            }
+        }
+        double m = 0;
+        for (size_t i = 0; i < WIDTH; i++){
+            for (size_t j = 0; j < HEIGHT; j++){
+                double x = ux[i][j] * ux[i][j]  + uy[i][j] *  uy[i][j];
+                if (x > m){
+                    m = x;
+                }
+            }
+        }
+        for (size_t i = 0; i < WIDTH; i++){
+            for (size_t j = 0; j < HEIGHT; j++){
+                pixels[4 *(WIDTH *j + i)] = (uint8_t)((ux[i][j] * ux[i][j]  + uy[i][j] *  uy[i][j]) / m * 255);
+            }
+        }
+        cout << uy[301][100] << endl;
         texture.update(pixels);
         window.clear();
         window.draw(sprite);
