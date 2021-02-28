@@ -15,8 +15,17 @@ int main()
     srand(228);
     for (size_t i = 0; i < ux.size(); i++){
         for (size_t j = 0; j < ux[0].size(); j++){
-            ux[i][j] = (double) rand()/RAND_MAX  * 0.5;
-            uy[i][j] = (double) rand()/RAND_MAX * 0.5 ;
+            ux[i][j] = (double) rand()/RAND_MAX;
+            uy[i][j] = (double) rand()/RAND_MAX;
+        }
+    }
+    double m = 0;
+    for (size_t i = 0; i < WIDTH; i++){
+        for (size_t j = 0; j < HEIGHT; j++){
+            double x = ux[i][j] * ux[i][j]  + uy[i][j] *  uy[i][j];
+            if (x > m){
+                m = x;
+            }
         }
     }
     sf::Uint8 pixels[WIDTH * HEIGHT * 4] = {};
@@ -33,11 +42,11 @@ int main()
             for (size_t j = 1; j < HEIGHT - 1; j++){
                 double ddx = (ux[i + 1][j] - 2 * ux[i][j] + ux[i - 1][j])/ 4;
                 double ddy = (ux[i][j + 1] - 2 * ux[i][j] + ux[i][j - 1])/ 4;
-                double dt = 10 *(ddx + ddy);
+                double dt = 1 *(ddx + ddy);
                 uxtemp[i][j] = ux[i][j] +  dt;
                 ddx = (uy[i + 1][j] - 2 * uy[i][j] + uy[i - 1][j])/ 4;
                 ddy = (uy[i][j + 1] - 2 * uy[i][j] + uy[i][j - 1])/ 4;
-                dt = 10 * (ddx + ddy);
+                dt = 1 * (ddx + ddy);
                 uytemp[i][j] = uy[i][j] +  dt;
              }
         }
@@ -57,22 +66,13 @@ int main()
         uy = uytemp;
         for (size_t i = 100; i < 300; i++){
             for (size_t j = 100; j < 300; j++){
-                    ux[i][j] = 0;
-                    uy[i][j] = 0;
-            }
-        }
-        double m = 0;
-        for (size_t i = 0; i < WIDTH; i++){
-            for (size_t j = 0; j < HEIGHT; j++){
-                double x = ux[i][j] * ux[i][j]  + uy[i][j] *  uy[i][j];
-                if (x > m){
-                    m = x;
-                }
+                   // ux[i][j] = 0;
+                    //uy[i][j] = 0;
             }
         }
         for (size_t i = 0; i < WIDTH; i++){
             for (size_t j = 0; j < HEIGHT; j++){
-                pixels[4 *(WIDTH *j + i)] = (uint8_t)((ux[i][j] * ux[i][j]  + uy[i][j] *  uy[i][j]) / m * 255);
+                pixels[4 *(WIDTH *j + i) + 1] = (uint8_t)((ux[i][j] * ux[i][j]  + uy[i][j] *  uy[i][j]) / m * 255);
             }
         }
         cout << uy[301][100] << endl;
